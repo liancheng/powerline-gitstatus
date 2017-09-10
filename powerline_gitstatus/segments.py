@@ -110,7 +110,7 @@ class GitStatusSegment(Segment):
 
         return segments
 
-    def __call__(self, pl, segment_info, use_dash_c=True, show_tag=False, labels={}):
+    def __call__(self, pl, segment_info, use_dash_c=True, show_tag=False, tag_exact_match=False, labels={}):
         pl.debug('Running gitstatus %s -C' % ('with' if use_dash_c else 'without'))
 
         cwd = segment_info['getcwd']()
@@ -141,7 +141,7 @@ class GitStatusSegment(Segment):
         stashed = len(self.execute(pl, base + ['stash', 'list', '--no-decorate'])[0])
 
         if show_tag:
-            tag, err = self.execute(pl, base + ['describe', '--tags', '--abbrev=0'])
+            tag, err = self.execute(pl, base + ['describe', '--tags', '--abbrev=0'] + (['--exact-match'] if tag_exact_match else []))
 
             if err and ('error' in err[0] or 'fatal' in err[0]):
                 tag = ''
@@ -170,6 +170,10 @@ if that number is greater than zero.
 :param bool show_tag:
     Show the most recent tag reachable in the current branch.
     False by default, because it needs to execute git an additional time.
+
+:param bool tag_exact_match:
+    Show the tag directly referencing the current commit when ``show_tag`` is set to ``true``.
+    False by default.
 
 :param dict labels:
     A string-to-string dictionary for customizing Git status labels. Valid keys include ``branch``, ``tag``, ``ahead``, ``behind``, ``staged``, ``unmerged``, ``changes``, ``untracked``, and ``stashed``.
